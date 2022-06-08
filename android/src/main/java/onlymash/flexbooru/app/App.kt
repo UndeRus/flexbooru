@@ -22,26 +22,14 @@ import android.os.Build
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
-import com.android.billingclient.api.*
 import com.bumptech.glide.Glide
-import com.google.android.gms.ads.MobileAds
-import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.material.color.DynamicColors
 import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader
 import com.mikepenz.materialdrawer.util.DrawerImageLoader
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import onlymash.flexbooru.BuildConfig
 import onlymash.flexbooru.R
-import onlymash.flexbooru.app.Settings.isGoogleSign
-import onlymash.flexbooru.app.Settings.isOrderSuccess
 import onlymash.flexbooru.app.Settings.nightMode
-import onlymash.flexbooru.app.Settings.orderDeviceId
-import onlymash.flexbooru.app.Settings.orderId
-import onlymash.flexbooru.data.api.OrderApi
-import onlymash.flexbooru.extension.getSignMd5
 import onlymash.flexbooru.glide.GlideApp
-import onlymash.flexbooru.ui.activity.PurchaseActivity
 import org.kodein.di.DI
 import org.kodein.di.DIAware
 
@@ -80,73 +68,8 @@ class App : Application(), DIAware {
         }
         AppCompatDelegate.setDefaultNightMode(nightMode)
         DrawerImageLoader.init(drawerImageLoader)
-        if (!Settings.isOrderSuccess) {
-            MobileAds.initialize(this) {}
-            MobileAds.setRequestConfiguration(RequestConfiguration.Builder()
-                .setTestDeviceIds(listOf("65DC68D21E774E5B6CAF511768A3E2D2")).build())
-        }
         if (BuildConfig.DEBUG) {
             return
         }
-        checkOrder()
-    }
-
-    private fun checkOrder() {
-        val isPlayVersion = getSignMd5() == "777296a0fe4baa88c783d1cb18bdf1f2"
-        isGoogleSign = isPlayVersion
-        if (isPlayVersion) {
-            val time = System.currentTimeMillis()
-            if (!Settings.isOrderSuccess || time - Settings.orderTime > 7*24*60*60*1000) {
-                Settings.orderTime = time
-                checkOrderFromCache()
-            }
-        } else {
-            val id = orderId
-            if (id.isNotEmpty()) {
-                GlobalScope.launch {
-                    OrderApi.orderChecker(id, orderDeviceId)
-                }
-            } else {
-                isOrderSuccess = false
-            }
-        }
-    }
-
-    private fun checkOrderFromCache() {
-        val billingClient = BillingClient
-            .newBuilder(this)
-            .enablePendingPurchases()
-            .setListener { _, _ ->  }
-            .build()
-        billingClient.startConnection(object : BillingClientStateListener {
-            override fun onBillingSetupFinished(billingResult: BillingResult) {
-                if (billingResult.responseCode ==  BillingClient.BillingResponseCode.OK) {
-                    val queryPurchasesParams = QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP).build()
-                    billingClient.queryPurchasesAsync(queryPurchasesParams) { _, purchases ->
-                        isOrderSuccess = if (purchases.isEmpty()) {
-                            false
-                        } else {
-                            val index = purchases.indexOfFirst {
-                                it.products[0] == PurchaseActivity.SKU && it.purchaseState == Purchase.PurchaseState.PURCHASED
-                            }
-                            if (index >= 0) {
-                                val purchase = purchases[index]
-                                if (!purchase.isAcknowledged) {
-                                    val ackParams = AcknowledgePurchaseParams.newBuilder()
-                                        .setPurchaseToken(purchase.purchaseToken)
-                                        .build()
-                                    billingClient.acknowledgePurchase(ackParams){}
-                                }
-                                true
-                            } else false
-                        }
-                    }
-                    billingClient.endConnection()
-                }
-            }
-            override fun onBillingServiceDisconnected() {
-                billingClient.endConnection()
-            }
-        })
     }
 }

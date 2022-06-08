@@ -17,7 +17,6 @@ package onlymash.flexbooru.ui.activity
 
 import android.annotation.SuppressLint
 import android.app.Dialog
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.graphics.drawable.Drawable
@@ -25,8 +24,9 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Base64
-import android.view.*
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
@@ -42,24 +42,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import onlymash.flexbooru.R
-import onlymash.flexbooru.app.Settings.isOrderSuccess
+import onlymash.flexbooru.common.di.diCommon
+import onlymash.flexbooru.common.tracemoe.api.TraceMoeApi
+import onlymash.flexbooru.common.tracemoe.model.Result
 import onlymash.flexbooru.databinding.ActivityWhatAnimeBinding
 import onlymash.flexbooru.databinding.FragmentAnimePlayerBinding
 import onlymash.flexbooru.databinding.ItemWhatAnimeBinding
-import onlymash.flexbooru.common.di.diCommon
 import onlymash.flexbooru.exoplayer.PlayerHolder
 import onlymash.flexbooru.extension.copyText
 import onlymash.flexbooru.extension.fileExt
 import onlymash.flexbooru.extension.toVisibility
 import onlymash.flexbooru.glide.GlideApp
-import onlymash.flexbooru.common.tracemoe.api.TraceMoeApi
-import onlymash.flexbooru.common.tracemoe.model.Result
-import onlymash.flexbooru.ui.base.BaseBottomSheetDialog
-import onlymash.flexbooru.ui.viewmodel.TraceMoeViewModel
-import onlymash.flexbooru.ui.viewmodel.getTraceMoeViewModel
 import onlymash.flexbooru.ui.base.BaseActivity
+import onlymash.flexbooru.ui.base.BaseBottomSheetDialog
 import onlymash.flexbooru.ui.helper.OpenFileLifecycleObserver
 import onlymash.flexbooru.ui.viewbinding.viewBinding
+import onlymash.flexbooru.ui.viewmodel.TraceMoeViewModel
+import onlymash.flexbooru.ui.viewmodel.getTraceMoeViewModel
 import org.kodein.di.instance
 import java.io.ByteArrayOutputStream
 
@@ -82,11 +81,6 @@ class WhatAnimeActivity : BaseActivity() {
         
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (!isOrderSuccess) {
-            startActivity(Intent(this, PurchaseActivity::class.java))
-            finish()
-            return
-        }
         setContentView(binding.root)
         val list = binding.common.list
         val fab = binding.fab

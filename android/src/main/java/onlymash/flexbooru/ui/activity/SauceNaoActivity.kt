@@ -19,7 +19,9 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.*
+import android.view.Menu
+import android.view.MenuItem
+import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.FrameLayout
 import androidx.appcompat.app.AlertDialog
@@ -34,21 +36,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import onlymash.flexbooru.R
-import onlymash.flexbooru.app.Settings.isOrderSuccess
 import onlymash.flexbooru.app.Settings.sauceNaoApiKey
-import onlymash.flexbooru.databinding.ActivitySauceNaoBinding
-import onlymash.flexbooru.databinding.ItemSauceNaoBinding
 import onlymash.flexbooru.common.di.diCommon
-import onlymash.flexbooru.extension.*
-import onlymash.flexbooru.glide.GlideApp
 import onlymash.flexbooru.common.saucenao.api.SauceNaoApi
 import onlymash.flexbooru.common.saucenao.model.Result
 import onlymash.flexbooru.common.saucenao.model.SauceNaoResponse
-import onlymash.flexbooru.ui.viewmodel.SauceNaoViewModel
-import onlymash.flexbooru.ui.viewmodel.getSauceNaoViewModel
+import onlymash.flexbooru.databinding.ActivitySauceNaoBinding
+import onlymash.flexbooru.databinding.ItemSauceNaoBinding
+import onlymash.flexbooru.extension.fileExt
+import onlymash.flexbooru.extension.launchUrl
+import onlymash.flexbooru.extension.toDecodedString
+import onlymash.flexbooru.extension.toVisibility
+import onlymash.flexbooru.glide.GlideApp
 import onlymash.flexbooru.ui.base.BaseActivity
 import onlymash.flexbooru.ui.helper.OpenFileLifecycleObserver
 import onlymash.flexbooru.ui.viewbinding.viewBinding
+import onlymash.flexbooru.ui.viewmodel.SauceNaoViewModel
+import onlymash.flexbooru.ui.viewmodel.getSauceNaoViewModel
 import org.kodein.di.instance
 import java.io.IOException
 
@@ -78,11 +82,6 @@ class SauceNaoActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (!isOrderSuccess) {
-            startActivity(Intent(this, PurchaseActivity::class.java))
-            finish()
-            return
-        }
         setContentView(binding.root)
         val list = binding.common.list
         val progressBar = binding.common.progress.progressBar

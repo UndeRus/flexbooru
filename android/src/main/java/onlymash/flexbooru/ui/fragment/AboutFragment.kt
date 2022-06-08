@@ -20,7 +20,6 @@ import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import onlymash.flexbooru.BuildConfig
 import onlymash.flexbooru.R
 import onlymash.flexbooru.extension.launchUrl
@@ -65,12 +64,6 @@ class AboutFragment : PreferenceFragmentCompat() {
             "about_copyright" -> {
                 context?.run {
                     startActivity(Intent(this, CopyrightActivity::class.java))
-                }
-            }
-            "about_licenses" -> {
-                context?.run {
-                    OssLicensesMenuActivity.setActivityTitle("Open Source Licenses")
-                    startActivity(Intent(this, OssLicensesMenuActivity::class.java))
                 }
             }
         }

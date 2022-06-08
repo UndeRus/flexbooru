@@ -22,8 +22,9 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.DocumentsContract
-import android.view.*
-import android.widget.LinearLayout
+import android.view.MenuItem
+import android.view.View
+import android.view.Window
 import android.widget.Toast
 import androidx.annotation.IntRange
 import androidx.appcompat.app.AlertDialog
@@ -32,23 +33,26 @@ import androidx.appcompat.widget.TooltipCompat
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import androidx.core.view.*
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.exoplayer2.ui.StyledPlayerView
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
-
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asExecutor
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import onlymash.flexbooru.R
 import onlymash.flexbooru.app.Keys.POST_POSITION
 import onlymash.flexbooru.app.Keys.POST_QUERY
-import onlymash.flexbooru.app.Settings
 import onlymash.flexbooru.app.Settings.POST_SIZE_LARGER
 import onlymash.flexbooru.app.Settings.POST_SIZE_SAMPLE
 import onlymash.flexbooru.app.Settings.activatedBooruUid
@@ -70,7 +74,18 @@ import onlymash.flexbooru.data.repository.favorite.VoteRepository
 import onlymash.flexbooru.data.repository.favorite.VoteRepositoryImpl
 import onlymash.flexbooru.databinding.ActivityDetailBinding
 import onlymash.flexbooru.exoplayer.PlayerHolder
-import onlymash.flexbooru.extension.*
+import onlymash.flexbooru.extension.NetResult
+import onlymash.flexbooru.extension.copyTo
+import onlymash.flexbooru.extension.fileName
+import onlymash.flexbooru.extension.getMimeType
+import onlymash.flexbooru.extension.getSaveUri
+import onlymash.flexbooru.extension.getUriForFile
+import onlymash.flexbooru.extension.hideSystemBars
+import onlymash.flexbooru.extension.isStatusBarShown
+import onlymash.flexbooru.extension.isVideo
+import onlymash.flexbooru.extension.launchUrl
+import onlymash.flexbooru.extension.safeCloseQuietly
+import onlymash.flexbooru.extension.showSystemBars
 import onlymash.flexbooru.glide.GlideApp
 import onlymash.flexbooru.ui.adapter.DetailAdapter
 import onlymash.flexbooru.ui.base.PathActivity
@@ -82,7 +97,12 @@ import onlymash.flexbooru.ui.viewmodel.getDetailViewModel
 import onlymash.flexbooru.widget.DismissFrameLayout
 import onlymash.flexbooru.worker.DownloadWorker
 import org.kodein.di.instance
-import java.io.*
+import java.io.File
+import java.io.FileInputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import kotlin.collections.contains
 
 private const val ALPHA_MAX = 0xFF
 private const val ALPHA_MIN = 0x00
@@ -333,22 +353,6 @@ class DetailActivity : PathActivity(),
         }
         favButton.setOnClickListener {
             vote()
-        }
-        if (!Settings.isOrderSuccess) {
-            val adView = AdView(this)
-            binding.bottomShortcut.bottomBarContainer.addView(adView, 0, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                gravity = Gravity.CENTER_HORIZONTAL
-            })
-            var adWidth = getScreenWidthDp()
-            if (adWidth > 500) {
-                adWidth = 500
-            }
-            adView.apply {
-                visibility = View.VISIBLE
-                adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this@DetailActivity, adWidth)
-                adUnitId = "ca-app-pub-1547571472841615/1729907816"
-                loadAd(AdRequest.Builder().build())
-            }
         }
     }
 

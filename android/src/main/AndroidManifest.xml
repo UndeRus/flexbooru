@@ -63,9 +63,6 @@
             android:name=".ui.activity.TagBlacklistActivity"
             android:theme="@style/AppTheme.ScrimNavBar.Animation"/>
         <activity
-            android:name=".ui.activity.PurchaseActivity"
-            android:theme="@style/AppTheme.ScrimNavBar.Animation"/>
-        <activity
             android:name=".ui.activity.AboutActivity"
             android:theme="@style/AppTheme.ScrimNavBar.Animation"/>
         <activity

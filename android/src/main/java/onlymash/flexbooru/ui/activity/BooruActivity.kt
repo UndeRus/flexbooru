@@ -22,13 +22,14 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.view.*
-import android.widget.LinearLayout
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
-import androidx.recyclerview.widget.*
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -38,25 +39,22 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import onlymash.flexbooru.R
-import onlymash.flexbooru.app.Settings
 import onlymash.flexbooru.app.Settings.activatedBooruUid
-import onlymash.flexbooru.app.Settings.isOrderSuccess
 import onlymash.flexbooru.app.Values
 import onlymash.flexbooru.data.database.dao.BooruDao
 import onlymash.flexbooru.data.model.common.Booru
 import onlymash.flexbooru.databinding.ActivityBooruBinding
-import onlymash.flexbooru.extension.getScreenWidthDp
 import onlymash.flexbooru.extension.safeCloseQuietly
 import onlymash.flexbooru.ui.adapter.BooruAdapter
-import onlymash.flexbooru.ui.helper.ItemTouchCallback
-import onlymash.flexbooru.ui.helper.ItemTouchHelperCallback
-import onlymash.flexbooru.ui.viewmodel.BooruViewModel
-import onlymash.flexbooru.ui.viewmodel.getBooruViewModel
 import onlymash.flexbooru.ui.base.KodeinActivity
 import onlymash.flexbooru.ui.fragment.QRCodeDialog
 import onlymash.flexbooru.ui.helper.CreateFileLifecycleObserver
+import onlymash.flexbooru.ui.helper.ItemTouchCallback
+import onlymash.flexbooru.ui.helper.ItemTouchHelperCallback
 import onlymash.flexbooru.ui.helper.OpenFileLifecycleObserver
 import onlymash.flexbooru.ui.viewbinding.viewBinding
+import onlymash.flexbooru.ui.viewmodel.BooruViewModel
+import onlymash.flexbooru.ui.viewmodel.getBooruViewModel
 import org.kodein.di.instance
 import java.io.IOException
 import java.io.InputStream
@@ -140,22 +138,6 @@ class BooruActivity : KodeinActivity() {
         if (intent != null) {
             handleShareIntent(intent)
         }
-        if (!Settings.isOrderSuccess) {
-            val adView = AdView(this)
-            binding.container.addView(adView, 0, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                gravity = Gravity.CENTER_HORIZONTAL
-            })
-            var adWidth = getScreenWidthDp()
-            if (adWidth > 500) {
-                adWidth = 500
-            }
-            adView.apply {
-                visibility = View.VISIBLE
-                adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this@BooruActivity, adWidth)
-                adUnitId = "ca-app-pub-1547571472841615/5647147698"
-                loadAd(AdRequest.Builder().build())
-            }
-        }
     }
 
     private fun createDefaultBooru(): Long {
@@ -228,18 +210,10 @@ class BooruActivity : KodeinActivity() {
     }
 
     private fun backupToFile() {
-        if (!isOrderSuccess) {
-            startActivity(Intent(this, PurchaseActivity::class.java))
-            return
-        }
         createFileObserver.createDocument("boorus.json")
     }
 
     private fun restoreFromFile() {
-        if (!isOrderSuccess) {
-            startActivity(Intent(this, PurchaseActivity::class.java))
-            return
-        }
         val mimeType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) "application/json" else "application/octet-stream"
         openFileObserver.openDocument(mimeType)
     }
