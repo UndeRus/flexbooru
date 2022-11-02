@@ -26,7 +26,6 @@ import com.bumptech.glide.Glide
 import com.google.android.material.color.DynamicColors
 import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader
 import com.mikepenz.materialdrawer.util.DrawerImageLoader
-import onlymash.flexbooru.BuildConfig
 import onlymash.flexbooru.R
 import onlymash.flexbooru.app.Settings.nightMode
 import onlymash.flexbooru.glide.GlideApp
@@ -68,8 +67,5 @@ class App : Application(), DIAware {
         }
         AppCompatDelegate.setDefaultNightMode(nightMode)
         DrawerImageLoader.init(drawerImageLoader)
-        if (BuildConfig.DEBUG) {
-            return
-        }
     }
 }

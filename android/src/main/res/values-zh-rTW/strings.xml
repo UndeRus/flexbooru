@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (C) 2020. by onlymash <im@fiepi.me>, All rights reserved
+  ~ Copyright (C) 2020. by onlymash <fiepi.dev@gmail.com>, All rights reserved
   ~
   ~ This program is free software: you can redistribute it and/or modify it under
   ~ the terms of the GNU General Public License as published by the Free Software
@@ -62,13 +62,13 @@
     <string name="post_expand_or_clear">展開或清除</string>
     <string name="post_add_search_to_muzei">已將「%s」儲存至 Muzei。</string>
     <string name="post_download">下載貼圖</string>
-    <string name="post_add_to_fav">新增至收藏</string>
+    <string name="post_add_to_fav">新增至最愛</string>
     <string name="post_search_by_sauce_nao">透過 SauceNao 搜尋</string>
     <string name="msg_download_must_enable">需要下載管理器。</string>
     <string name="msg_path_denied">儲存失敗！沒有目前路徑的存取權。</string>
     <string name="msg_download_failed">下載失敗</string>
     <string name="msg_download_complete">下載完成</string>
-    <string name="msg_password_or_hash_salt_wrong">密碼或散列值有誤。</string>
+    <string name="msg_password_or_hash_salt_wrong">密碼或雜湊鹽有誤。</string>
     <string name="popular_day">日</string>
     <string name="popular_week">週</string>
     <string name="popular_month">月</string>
@@ -104,17 +104,17 @@
     <string name="booru_config_host">主機</string>
     <string name="booru_config_path">路徑</string>
     <string name="booru_config_type">類型</string>
-    <string name="booru_config_hash_salt">散列值</string>
+    <string name="booru_config_hash_salt">雜湊鹽</string>
     <string name="booru_config_name_cant_empty">名稱不可為空白。</string>
     <string name="booru_config_host_cant_empty">主機不可為空白。</string>
     <string name="booru_config_host_invalid">無效的主機。</string>
-    <string name="booru_config_hash_salt_cant_empty">散列值不可為空白。</string>
+    <string name="booru_config_hash_salt_cant_empty">雜湊鹽不可為空白。</string>
     <string name="booru_config_dialog_title_delete">你確定要移除這個 Booru 嗎？</string>
-    <string name="booru_config_hash_salt_must_contain_yp">散列值必須包含字元：「your-password」</string>
+    <string name="booru_config_hash_salt_must_contain_yp">雜湊鹽必須包含文字：「your-password」</string>
     <string name="scaner_scan_qr_code">掃描 QR Code</string>
     <string name="scaner_add_booru_permission_required">掃描 QR Code 需要相機權限。</string>
     <string name="browse_toolbar_title">貼圖</string>
-    <string name="browse_add_to_fav">新增至收藏</string>
+    <string name="browse_add_to_fav">新增至最愛</string>
     <string name="browse_download">下載</string>
     <string name="browse_set_as">設定為</string>
     <string name="browse_send_file">傳送檔案</string>
@@ -131,9 +131,11 @@
     <string name="browse_tag_include">包含</string>
     <string name="browse_info_source">來源</string>
     <string name="browse_info_rating">評級</string>
-    <string name="browse_info_rating_safe">安全的</string>
-    <string name="browse_info_rating_questionable">可疑的</string>
-    <string name="browse_info_rating_explicit">露骨的</string>
+    <string name="browse_info_rating_safe">安全</string>
+    <string name="browse_info_rating_questionable">可疑</string>
+    <string name="browse_info_rating_explicit">露骨</string>
+    <string name="browse_info_rating_general">一般</string>
+    <string name="browse_info_rating_sensitive">敏感</string>
     <string name="browse_info_score">評分</string>
     <string name="browse_info_parent">上層</string>
     <string name="browse_info_title">資訊</string>
@@ -150,7 +152,7 @@
     <string name="account_user_id">ID：%d</string>
     <string name="account_user_remove">移除帳戶</string>
     <string name="account_user_dialog_title_remove">你確定要移除這個帳戶？</string>
-    <string name="account_favorites">收藏</string>
+    <string name="account_favorites">最愛</string>
     <string name="account_posts">貼圖</string>
     <string name="account_comments">留言</string>
     <string name="account_config_msg_tip_empty">使用者名稱或密碼/Api 金鑰不可為空白。</string>
@@ -158,8 +160,8 @@
     <string name="settings_night_mode">夜間模式</string>
     <string name="settings_night_mode_on">開啟</string>
     <string name="settings_night_mode_off">關閉</string>
-    <string name="settings_night_mode_system">依據系統設定</string>
-    <string name="settings_night_mode_battery">依據省電模式</string>
+    <string name="settings_night_mode_system">跟隨系統設定</string>
+    <string name="settings_night_mode_battery">跟隨省電模式</string>
     <string name="settings_night_theme">夜間主題</string>
     <string name="settings_night_theme_dark">深色</string>
     <string name="settings_night_theme_black">黑色</string>
@@ -191,10 +193,10 @@
     <string name="settings_auto_hide_bottom_bar">自動隱藏底部列</string>
     <string name="settings_auto_refresh">自動重新整理</string>
     <string name="settings_clear_cache">清除快取</string>
-    <string name="settings_clear_cache_summery">移除所有快取檔案。</string>
+    <string name="settings_clear_cache_summery">移除所有快取檔案</string>
     <string name="settings_clear_cache_dialog_content">將會清除快取檔案。</string>
     <string name="settings_clear_history">清除搜尋記錄</string>
-    <string name="settings_clear_history_summery">移除所有搜尋記錄。</string>
+    <string name="settings_clear_history_summery">移除所有搜尋記錄</string>
     <string name="settings_clear_history_dialog_content">將會清除所有搜尋記錄。</string>
     <string name="settings_muzei">Muzei</string>
     <string name="settings_display">顯示</string>
@@ -212,11 +214,11 @@
     <string name="tag_type_all">所有類型</string>
     <string name="tag_type_general">一般</string>
     <string name="tag_type_artist">繪師</string>
-    <string name="tag_type_copyright">著作權</string>
+    <string name="tag_type_copyright">版權</string>
     <string name="tag_type_character">角色</string>
     <string name="tag_type_circle">圈子</string>
-    <string name="tag_type_faults">遺漏</string>
-    <string name="tag_type_meta">元</string>
+    <string name="tag_type_faults">錯誤</string>
+    <string name="tag_type_meta">後設</string>
     <string name="tag_type_model">模特</string>
     <string name="tag_type_photo_set">圖集</string>
     <string name="tag_type_genre">文類</string>

@@ -135,6 +135,8 @@
     <string name="browse_info_rating_safe">Безопасное</string>
     <string name="browse_info_rating_questionable">Под вопросом</string>
     <string name="browse_info_rating_explicit">Откровенное</string>
+    <string name="browse_info_rating_general">General</string>
+    <string name="browse_info_rating_sensitive">Sensitive</string>
     <string name="browse_info_score">Оценка</string>
     <string name="browse_info_parent">Родитель</string>
     <string name="browse_info_title">Информация</string>

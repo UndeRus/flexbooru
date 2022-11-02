@@ -15,6 +15,7 @@
 
 package onlymash.flexbooru.worker
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -25,6 +26,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.DocumentsContract
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.work.*
 import onlymash.flexbooru.app.App
 import onlymash.flexbooru.app.Settings
@@ -262,6 +264,7 @@ class DownloadWorker(
         val cancelIntent = WorkManager.getInstance(applicationContext).createCancelPendingIntent(id)
         val notification = NotificationCompat.Builder(applicationContext, channelId)
             .setSmallIcon(android.R.drawable.stat_sys_download)
+            .setColor(ContextCompat.getColor(applicationContext, R.color.colorPrimary))
             .setCategory(NotificationCompat.CATEGORY_PROGRESS)
             .setContentTitle(title)
             .setContentText(url)
@@ -274,6 +277,7 @@ class DownloadWorker(
         return ForegroundInfo(notificationId, notification)
     }
 
+    @SuppressLint("UnspecifiedImmutableFlag")
     private fun getDownloadedNotification(title: String, channelId: String, desUri: Uri): Notification {
         val intent = Intent(applicationContext, DownloadNotificationClickReceiver::class.java)
         intent.data = desUri
@@ -292,6 +296,7 @@ class DownloadWorker(
         }
         return NotificationCompat.Builder(applicationContext, channelId)
             .setSmallIcon(android.R.drawable.stat_sys_download_done)
+            .setColor(ContextCompat.getColor(applicationContext, R.color.colorPrimary))
             .setContentTitle(title)
             .setContentText(applicationContext.getString(R.string.msg_download_complete))
             .setOngoing(false)
@@ -300,6 +305,7 @@ class DownloadWorker(
             .build()
     }
 
+    @SuppressLint("UnspecifiedImmutableFlag")
     private fun getDownloadErrorNotification(title: String, channelId: String): Notification {
         val intent = Intent(applicationContext, DownloadNotificationClickReceiver::class.java)
         intent.putExtra(INPUT_DATA_KEY, inputData.toByteArray())
@@ -318,6 +324,7 @@ class DownloadWorker(
         }
         return NotificationCompat.Builder(applicationContext, channelId)
             .setSmallIcon(android.R.drawable.stat_sys_warning)
+            .setColor(ContextCompat.getColor(applicationContext, R.color.colorPrimary))
             .setContentTitle(title)
             .setContentText(applicationContext.getString(R.string.msg_download_failed))
             .setOngoing(false)

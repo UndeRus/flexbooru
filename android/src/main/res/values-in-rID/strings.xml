@@ -134,6 +134,8 @@
     <string name="browse_info_rating_safe">Aman</string>
     <string name="browse_info_rating_questionable">Dipertanyakan</string>
     <string name="browse_info_rating_explicit">Eksplisit</string>
+    <string name="browse_info_rating_general">General</string>
+    <string name="browse_info_rating_sensitive">Sensitive</string>
     <string name="browse_info_score">Skor</string>
     <string name="browse_info_parent">Induk</string>
     <string name="browse_info_title">Informasi</string>

@@ -134,6 +134,8 @@
     <string name="browse_info_rating_safe">Seguro</string>
     <string name="browse_info_rating_questionable">Questionável</string>
     <string name="browse_info_rating_explicit">Explícito</string>
+    <string name="browse_info_rating_general">General</string>
+    <string name="browse_info_rating_sensitive">Sensitive</string>
     <string name="browse_info_score">Pontuação</string>
     <string name="browse_info_parent">Pais</string>
     <string name="browse_info_title">Informação</string>
