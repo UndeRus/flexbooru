@@ -24,16 +24,20 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import onlymash.flexbooru.BuildConfig
+import onlymash.flexbooru.app.App
 import onlymash.flexbooru.app.Settings
 import onlymash.flexbooru.app.Values
+import onlymash.flexbooru.okhttp.AndroidCookieJar
+import onlymash.flexbooru.okhttp.CloudflareInterceptor
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 
 fun createHttpClient(isSankaku: Boolean): OkHttpClient {
     val builder = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(10, TimeUnit.SECONDS)
-        .writeTimeout(10, TimeUnit.SECONDS)
+        .cookieJar(AndroidCookieJar)
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
 
     if (Settings.isDohEnable) {
         builder.dns(Settings.doh)
@@ -45,6 +49,10 @@ fun createHttpClient(isSankaku: Boolean): OkHttpClient {
         builder.addInterceptor(ApiInterceptor())
     }
 
+    if (Settings.isBypassWAF) {
+        builder.addInterceptor(CloudflareInterceptor(App.app))
+    }
+
     if (BuildConfig.DEBUG) {
         val logger = HttpLoggingInterceptor { message -> Log.d("Api", message) }.apply {
             level = HttpLoggingInterceptor.Level.BASIC
@@ -53,6 +61,11 @@ fun createHttpClient(isSankaku: Boolean): OkHttpClient {
     }
 
     return builder.build()
+}
+
+val defaultJson get() = Json {
+    ignoreUnknownKeys = true
+    isLenient = true
 }
 
 inline fun <reified T> createApi(): T {
@@ -69,10 +82,7 @@ inline fun <reified T> createApi(): T {
                 .asConverterFactory("application/xml".toMediaType())
         }
         else -> {
-            Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-            }.asConverterFactory("application/json".toMediaType())
+            defaultJson.asConverterFactory("application/json".toMediaType())
         }
     }
     val isSankaku = classJava == SankakuApi::class.java

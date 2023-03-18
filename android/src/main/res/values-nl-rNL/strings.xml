@@ -55,10 +55,11 @@
     <string name="about_licenses">Licenties</string>
     <string name="about_open_source_licenses">Open-sourcelicenties</string>
     <string name="snackbar_copy_text">` %s ` zijn gekopieerd naar het klembord.</string>
-    <string name="retry">Opnieuw proberen</string>
+    <string name="action_retry">Retry</string>
     <string name="msg_not_supported">Niet ondersteund</string>
     <string name="msg_file_save_success">Het bestand is opgeslagen als %s</string>
     <string name="msg_your_api_key_is_wrong">Je API-sleutel is verkeerd!</string>
+    <string name="msg_cloudflare_challenges">Loading failed, please try again later</string>
     <string name="post_expand_or_clear">Uitklappen of wissen</string>
     <string name="post_add_search_to_muzei">` %s` zijn opgeslagen in Muzei.</string>
     <string name="post_download">Download post</string>
@@ -165,9 +166,14 @@
     <string name="settings_night_theme">Donker thema</string>
     <string name="settings_night_theme_dark">Donker</string>
     <string name="settings_night_theme_black">Zwart</string>
+    <string name="settings_summary_restart_required">Restart takes effect</string>
     <string name="settings_dns_over_https">DNS via HTTPS</string>
-    <string name="settings_dns_over_https_summary">Wordt van kracht na een herstart</string>
+    <string name="settings_dns_over_https_summary">Encrypted DNS</string>
     <string name="settings_dns_over_https_dns">DNS-provider</string>
+    <string name="settings_disable_sni">Disable SNI</string>
+    <string name="settings_disable_sni_summary">Removing SNI from HTTPS</string>
+    <string name="settings_bypass_waf">Bypass WAF</string>
+    <string name="settings_bypass_waf_summary">Bypassing Cloudflare WAF</string>
     <string name="settings_safe_mode">Veilige modus</string>
     <string name="settings_page_limit">Paginalimiet</string>
     <string name="settings_muzei_limit">Muzeilimiet</string>
@@ -267,6 +273,7 @@
     <string name="comment_cancel">Annuleren</string>
     <string name="comment_hint">Typ een reactie</string>
     <string name="purchase_title">Verwijder advertenties &amp; ontgrendel functies</string>
+    <string name="purchase_history_title">Restore purchase</string>
     <string name="purchase_info_title">Verwijder advertenties en ontgrendel alle functies</string>
     <string name="purchase_info_remove_ads">* Verwijder advertenties</string>
     <string name="purchase_info_unlock_full_features">* Ontgrendel alle functies</string>

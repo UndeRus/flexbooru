@@ -56,10 +56,11 @@
     <string name="about_licenses">Licencias</string>
     <string name="about_open_source_licenses">Licencias de código abierto</string>
     <string name="snackbar_copy_text">` %s ` han sido copiados al portapapeles.</string>
-    <string name="retry">Reintentar</string>
+    <string name="action_retry">Retry</string>
     <string name="msg_not_supported">No soportado</string>
     <string name="msg_file_save_success">El archivo se ha guardado como %s</string>
     <string name="msg_your_api_key_is_wrong">Tu Clave Api es incorrecta!</string>
+    <string name="msg_cloudflare_challenges">Loading failed, please try again later</string>
     <string name="post_expand_or_clear">Expandir o borrar</string>
     <string name="post_add_search_to_muzei">` %s ` se han guardado a Muzei.</string>
     <string name="post_download">Descargar publicación</string>
@@ -166,9 +167,14 @@
     <string name="settings_night_theme">Tema nocturno</string>
     <string name="settings_night_theme_dark">Oscuro</string>
     <string name="settings_night_theme_black">Negro</string>
+    <string name="settings_summary_restart_required">Restart takes effect</string>
     <string name="settings_dns_over_https">DNS sobre HTTPS</string>
-    <string name="settings_dns_over_https_summary">Reiniciar para que tenga efecto</string>
+    <string name="settings_dns_over_https_summary">Encrypted DNS</string>
     <string name="settings_dns_over_https_dns">Proveedor DNS</string>
+    <string name="settings_disable_sni">Disable SNI</string>
+    <string name="settings_disable_sni_summary">Removing SNI from HTTPS</string>
+    <string name="settings_bypass_waf">Bypass WAF</string>
+    <string name="settings_bypass_waf_summary">Bypassing Cloudflare WAF</string>
     <string name="settings_safe_mode">Modo seguro</string>
     <string name="settings_page_limit">Límite de páginas</string>
     <string name="settings_muzei_limit">Límite Muzei</string>
@@ -268,6 +274,7 @@
     <string name="comment_cancel">Cancelar</string>
     <string name="comment_hint">Comentario de entrada</string>
     <string name="purchase_title">Quitar anuncios y desbloquear características</string>
+    <string name="purchase_history_title">Restore purchase</string>
     <string name="purchase_info_title">Quitar anuncios y desbloquear características</string>
     <string name="purchase_info_remove_ads">* Quitar anuncios</string>
     <string name="purchase_info_unlock_full_features">* Desbloquear todas las características</string>

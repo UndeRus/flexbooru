@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 import okhttp3.HttpUrl
 import onlymash.flexbooru.R
 import onlymash.flexbooru.app.Settings.pageLimit
@@ -79,7 +80,7 @@ class PoolFragment : SearchBarFragment() {
             layoutManager = LinearLayoutManager(this@PoolFragment.requireContext(), RecyclerView.VERTICAL, false)
             adapter = poolAdapter.withLoadStateFooter(StateAdapter(poolAdapter))
         }
-        lifecycleScope.launchWhenCreated {
+        lifecycleScope.launch {
             poolViewModel.pools.collectLatest {
                 poolAdapter.submitData(it)
             }
@@ -89,7 +90,7 @@ class PoolFragment : SearchBarFragment() {
             progressBarHorizontal.isVisible = loadStates.source.append is LoadState.Loading
             updateState(loadStates.source.refresh)
         }
-        lifecycleScope.launchWhenCreated {
+        lifecycleScope.launch {
             poolAdapter.loadStateFlow
                 .asMergedLoadStates()
                 .distinctUntilChangedBy { it.refresh }

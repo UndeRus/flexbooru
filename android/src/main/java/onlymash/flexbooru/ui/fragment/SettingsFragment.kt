@@ -30,6 +30,8 @@ import onlymash.flexbooru.R
 import onlymash.flexbooru.app.Settings.CLEAR_CACHE_KEY
 import onlymash.flexbooru.app.Settings.DNS_OVER_HTTPS
 import onlymash.flexbooru.app.Settings.DNS_OVER_HTTPS_PROVIDER
+import onlymash.flexbooru.app.Settings.DISABLE_SNI_KEY
+import onlymash.flexbooru.app.Settings.BYPASS_WAF_KEY
 import onlymash.flexbooru.app.Settings.DOWNLOAD_PATH_KEY
 import onlymash.flexbooru.app.Settings.GRID_MODE_KEY
 import onlymash.flexbooru.app.Settings.GRID_RATIO_KEY
@@ -56,15 +58,21 @@ class SettingsFragment : PreferenceFragmentCompat(), DIAware, SharedPreferences.
     private val sp by instance<SharedPreferences>()
 
     private var gridRatioPreference: Preference? = null
+    private var dohPreference: SwitchPreferenceCompat? = null
+    private var dohProviderPreference: Preference? = null
+    private var disableSniPreference: SwitchPreferenceCompat? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.pref_settings)
         gridRatioPreference = findPreference(GRID_RATIO_KEY)
         gridRatioPreference?.isVisible = gridMode == "fixed"
+        dohPreference = findPreference(DNS_OVER_HTTPS)
+        dohProviderPreference = findPreference(DNS_OVER_HTTPS_PROVIDER)
+        disableSniPreference = findPreference(DISABLE_SNI_KEY)
         findPreference<Preference>(NIGHT_THEME_KEY)?.isVisible = resources.configuration.isNightEnable()
         downloadDirPath = context?.contentResolver?.getTreeUri()?.toDecodedString()
         initPathSummary()
-        setupDnsPreference()
+        findPreference<ListPreference>(DNS_OVER_HTTPS_PROVIDER)?.isVisible = isDohEnable
         sp.registerOnSharedPreferenceChangeListener(this)
     }
 
@@ -78,23 +86,22 @@ class SettingsFragment : PreferenceFragmentCompat(), DIAware, SharedPreferences.
             DOWNLOAD_PATH_KEY -> initPathSummary()
             NIGHT_MODE_KEY -> AppCompatDelegate.setDefaultNightMode(nightMode)
             GRID_MODE_KEY -> gridRatioPreference?.isVisible = gridMode == "fixed"
+            DISABLE_SNI_KEY -> disableSniPreference?.setSummary(R.string.settings_summary_restart_required)
+            BYPASS_WAF_KEY -> findPreference<SwitchPreferenceCompat>(BYPASS_WAF_KEY)?.setSummary(R.string.settings_summary_restart_required)
+            DNS_OVER_HTTPS -> {
+                dohPreference?.setSummary(R.string.settings_summary_restart_required)
+                with(isDohEnable) {
+                    dohProviderPreference?.isVisible = this
+                    disableSniPreference?.isVisible = this
+                }
+            }
+            DNS_OVER_HTTPS_PROVIDER -> dohPreference?.setSummary(R.string.settings_summary_restart_required)
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         sp.unregisterOnSharedPreferenceChangeListener(this)
-    }
-
-    private fun setupDnsPreference(changed: Boolean = false) {
-        findPreference<ListPreference>(DNS_OVER_HTTPS_PROVIDER)?.isVisible = isDohEnable
-        if (changed) {
-            findPreference<SwitchPreferenceCompat>(DNS_OVER_HTTPS)?.apply {
-                val tipSummary = getString(R.string.settings_dns_over_https_summary)
-                summaryOff = tipSummary
-                summaryOn = tipSummary
-            }
-        }
     }
 
     private fun initPathSummary() {
@@ -109,8 +116,6 @@ class SettingsFragment : PreferenceFragmentCompat(), DIAware, SharedPreferences.
         when (preference.key) {
             DOWNLOAD_PATH_KEY -> (activity as? PathActivity)?.pickDir()
             CLEAR_CACHE_KEY -> createClearDialog()
-            DNS_OVER_HTTPS,
-            DNS_OVER_HTTPS_PROVIDER -> setupDnsPreference(true)
         }
         return super.onPreferenceTreeClick(preference)
     }

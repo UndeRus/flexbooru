@@ -21,6 +21,7 @@ import okhttp3.OkHttpClient
 import okhttp3.dnsoverhttps.DnsOverHttps
 import onlymash.flexbooru.R
 import onlymash.flexbooru.okhttp.DohProviders
+import onlymash.flexbooru.okhttp.NoSniFactory
 import org.kodein.di.instance
 import java.util.*
 
@@ -28,6 +29,8 @@ object Settings {
 
     const val DNS_OVER_HTTPS = "settings_dns_over_https"
     const val DNS_OVER_HTTPS_PROVIDER = "settings_dns_over_https_dns"
+    const val DISABLE_SNI_KEY = "settings_disable_sni"
+    const val BYPASS_WAF_KEY = "settings_bypass_waf"
     const val SAFE_MODE_KEY = "settings_safe_mode"
     const val PAGE_LIMIT_KEY = "settings_page_limit"
     const val MUZEI_LIMIT_KEY = "settings_muzei_limit"
@@ -250,7 +253,7 @@ object Settings {
             ORDER_TOKEN_KEY, value).apply()
 
     var isOrderSuccess: Boolean
-        get() = sp.getBoolean(ORDER_SUCCESS_KEY, false)
+        get() = sp.getBoolean(ORDER_SUCCESS_KEY, true)
         set(value) = sp.edit().putBoolean(
             ORDER_SUCCESS_KEY, value).apply()
 
@@ -279,15 +282,28 @@ object Settings {
 
     val isDohEnable: Boolean get() = sp.getBoolean(DNS_OVER_HTTPS, true)
 
-    val doh: DnsOverHttps
-        get() {
-            return when (sp.getString(DNS_OVER_HTTPS_PROVIDER, "cloudflare")) {
-                "google" -> DohProviders.buildGoogle(OkHttpClient())
-                "powerdns" -> DohProviders.buildPowerDns(OkHttpClient())
-                "cleanbrowsing" -> DohProviders.buildCleanBrowsing(OkHttpClient())
-                else -> DohProviders.buildCloudflare(OkHttpClient())
+    private val isSniDisable: Boolean get() = sp.getBoolean(DISABLE_SNI_KEY, false)
+
+    val isBypassWAF: Boolean get() = sp.getBoolean(BYPASS_WAF_KEY, false)
+
+    val doh: DnsOverHttps by lazy {
+        val clientBuilder = OkHttpClient.Builder()
+            if (isSniDisable) {
+                clientBuilder.apply {
+                    connectionSpecs(NoSniFactory.tls)
+                    sslSocketFactory(NoSniFactory, NoSniFactory.defaultTrustManager)
+                }
             }
+        val client = clientBuilder.build()
+        when (sp.getString(DNS_OVER_HTTPS_PROVIDER, "cloudflare")) {
+            "google" -> DohProviders.buildGoogle(client)
+            "dnssb" -> DohProviders.buildDnsSb(client)
+            "cleanbrowsing" -> DohProviders.buildCleanBrowsing(client)
+            "opendns" -> DohProviders.buildOpenDns(client)
+            "quad9" -> DohProviders.buildQuad9(client)
+            else -> DohProviders.buildCloudflare(client)
         }
+    }
 
     var orderCheckTime: Long
         get() = sp.getLong(ORDER_CHECK_TIME, 0)

@@ -16,88 +16,124 @@
 package onlymash.flexbooru.okhttp
 
 import android.annotation.SuppressLint
-import android.os.Handler
-import android.os.Looper
-import android.webkit.*
+import android.content.Context
+import android.webkit.WebView
+import androidx.core.content.ContextCompat
+import okhttp3.Cookie
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
-import onlymash.flexbooru.app.App
-import onlymash.flexbooru.app.Keys.HEADER_COOKIE
-import java.io.IOException
+import okio.IOException
+import onlymash.flexbooru.R
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
-class CloudflareInterceptor : Interceptor {
 
-    private val serverCheck = arrayOf("cloudflare-nginx", "cloudflare")
+//https://github.com/tachiyomiorg/tachiyomi/blob/master/core/src/main/java/eu/kanade/tachiyomi/network/interceptor/CloudflareInterceptor.kt
+class CloudflareInterceptor(private val context: Context) : WebViewInterceptor(context) {
 
-    private val handler = Handler(Looper.getMainLooper())
+    private val executor = ContextCompat.getMainExecutor(context)
 
-    @Synchronized
-    override fun intercept(chain: Interceptor.Chain): Response {
-        val response = chain.proceed(chain.request())
-        // Check if Cloudflare anti-bot is on
-        if (response.code == 503 && response.header("Server") in serverCheck) {
-            try {
-                response.close()
-                val solutionRequest = resolveWithWebView(chain.request())
-                return chain.proceed(solutionRequest)
-            } catch (e: Exception) {
-                // Because OkHttp's enqueue only handles IOExceptions, wrap the exception so that
-                // we don't crash the entire app
-                throw IOException(e)
-            }
+    override fun shouldIntercept(response: Response): Boolean {
+        return response.code in ERROR_CODES && response.header("Server") in SERVER_CHECK
+    }
+
+    override fun intercept(
+        chain: Interceptor.Chain,
+        request: Request,
+        response: Response
+    ): Response {
+        try {
+            response.close()
+            AndroidCookieJar.remove(request.url, COOKIE_NAMES, 0)
+            val oldCookie = AndroidCookieJar.get(request.url)
+                .firstOrNull { it.name == "cf_clearance" }
+            resolveWithWebView(request, oldCookie)
+            return chain.proceed(request)
+        } catch (e: CloudflareBypassException) {
+            throw IOException(context.getString(R.string.msg_cloudflare_challenges))
+        } catch (e: Exception) {
+            throw IOException(e)
         }
-
-        return response
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun resolveWithWebView(request: Request): Request {
-        // We need to lock this thread until the WebView finds the challenge cookie, because
+    private fun resolveWithWebView(originalRequest: Request, oldCookie: Cookie?) {
+        // We need to lock this thread until the WebView finds the challenge solution url, because
         // OkHttp doesn't support asynchronous interceptors.
         val latch = CountDownLatch(1)
-        var webView: WebView? = null
-        var cookie = ""
-        val headers = request.headers.toMultimap().mapValues { it.value.getOrNull(0) ?: "" }
-        handler.post {
-            webView = WebView(App.app).apply {
-                settings.javaScriptEnabled = true
-                settings.userAgentString = request.header("User-Agent")
-                webViewClient = object : WebViewClient() {
-                    override fun onPageFinished(view: WebView?, url: String?) {
-                        super.onPageFinished(view, url)
-                        cookie = CookieManager.getInstance().getCookie(url) ?: ""
-                        if(cookie.contains("cf_clearance")) latch.countDown()
+
+        var webview: WebView? = null
+
+        var challengeFound = false
+        var cloudflareBypassed = false
+
+        val origRequestUrl = originalRequest.url.toString()
+        val headers = parseHeaders(originalRequest.headers)
+
+        executor.execute {
+            webview = createWebView(originalRequest)
+
+            webview?.webViewClient = object : WebViewClientCompat() {
+                override fun onPageFinished(view: WebView, url: String) {
+
+                    fun isCloudFlareBypassed(): Boolean {
+                        return AndroidCookieJar.get(origRequestUrl.toHttpUrl())
+                            .firstOrNull { it.name == "cf_clearance" }
+                            .let { it != null && it != oldCookie }
+                    }
+
+                    if (isCloudFlareBypassed()) {
+                        cloudflareBypassed = true
+                        latch.countDown()
+                    }
+
+                    if (url == origRequestUrl && !challengeFound) {
+                        // The first request didn't return the challenge, abort.
+                        latch.countDown()
                     }
                 }
-                CookieManager.getInstance().apply {
-                    removeAllCookies {}
-                    flush()
+
+                override fun onReceivedErrorCompat(
+                    view: WebView,
+                    errorCode: Int,
+                    description: String?,
+                    failingUrl: String,
+                    isMainFrame: Boolean,
+                ) {
+                    if (isMainFrame) {
+                        if (errorCode in ERROR_CODES) {
+                            // Found the Cloudflare challenge page.
+                            challengeFound = true
+                        } else {
+                            // Unlock thread, the challenge wasn't found.
+                            latch.countDown()
+                        }
+                    }
                 }
-                loadUrl(request.url.toString(), headers)
             }
+
+            webview?.loadUrl(origRequestUrl, headers)
         }
 
-        // Wait a reasonable amount of time to retrieve the cookie. The minimum should be
-        // around 4 seconds but it can take more due to slow networks or server issues.
-        latch.await(15, TimeUnit.SECONDS)
+        latch.awaitFor30Seconds()
 
-        handler.post {
-            webView?.apply {
+        executor.execute {
+            webview?.run {
                 stopLoading()
                 destroy()
             }
         }
 
-        //save cookie
-        //ignore
-
-        return request.newBuilder()
-            .removeHeader(HEADER_COOKIE)
-            .addHeader(HEADER_COOKIE, cookie)
-            .build()
+        // Throw exception if we failed to bypass Cloudflare
+        if (!cloudflareBypassed) {
+            throw CloudflareBypassException()
+        }
     }
-
 }
+
+private val ERROR_CODES = listOf(403, 503)
+private val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare")
+private val COOKIE_NAMES = listOf("cf_clearance")
+
+private class CloudflareBypassException : Exception()
