@@ -29,7 +29,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import coil.load
 import com.dekoservidoni.omfm.OneMoreFabMenu
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
@@ -47,7 +47,6 @@ import onlymash.flexbooru.extension.fileExt
 import onlymash.flexbooru.extension.launchUrl
 import onlymash.flexbooru.extension.toDecodedString
 import onlymash.flexbooru.extension.toVisibility
-import onlymash.flexbooru.glide.GlideApp
 import onlymash.flexbooru.ui.base.BaseActivity
 import onlymash.flexbooru.ui.helper.OpenFileLifecycleObserver
 import onlymash.flexbooru.ui.viewbinding.viewBinding
@@ -329,10 +328,7 @@ class SauceNaoActivity : BaseActivity() {
                         info2.text = String.format("Jp name: %s", result.data.jpName ?: "")
                     }
                 }
-                GlideApp.with(itemView.context)
-                    .load(result.header.thumbnail)
-                    .transition(DrawableTransitionOptions.withCrossFade())
-                    .into(thumbnail)
+                thumbnail.load(result.header.thumbnail)
                 urls = result.data.extUrls?.toTypedArray()
             }
         }

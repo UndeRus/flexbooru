@@ -86,7 +86,6 @@ import onlymash.flexbooru.data.repository.tagfilter.TagFilterRepositoryImpl
 import onlymash.flexbooru.extension.asMergedLoadStates
 import onlymash.flexbooru.extension.getScreenWidthPixels
 import onlymash.flexbooru.extension.rotate
-import onlymash.flexbooru.glide.GlideApp
 import onlymash.flexbooru.ui.activity.DetailActivity
 import onlymash.flexbooru.ui.activity.SauceNaoActivity
 import onlymash.flexbooru.ui.activity.SearchActivity
@@ -182,9 +181,7 @@ class PostFragment : SearchBarFragment() {
     }
 
     private fun initPostsList() {
-        val glide = GlideApp.with(this)
         postAdapter = PostAdapter(
-            glide = glide,
             clickItemCallback = { view, position, tranName ->
                 activity?.let {
                     sharedElement = view

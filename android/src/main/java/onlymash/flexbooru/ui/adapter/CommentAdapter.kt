@@ -19,9 +19,11 @@ import android.content.Intent
 import android.view.MenuInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import onlymash.flexbooru.R
 import onlymash.flexbooru.app.Values.BOORU_TYPE_GEL
 import onlymash.flexbooru.app.Values.BOORU_TYPE_GEL_LEGACY
@@ -31,13 +33,11 @@ import onlymash.flexbooru.data.model.common.Booru
 import onlymash.flexbooru.data.model.common.Comment
 import onlymash.flexbooru.databinding.ItemCommentBinding
 import onlymash.flexbooru.extension.formatDate
-import onlymash.flexbooru.glide.GlideRequests
 import onlymash.flexbooru.ui.activity.AccountActivity
 import onlymash.flexbooru.ui.activity.SearchActivity
 import onlymash.flexbooru.ui.viewbinding.viewBinding
 
 class CommentAdapter(
-    private val glide: GlideRequests,
     private val booru: Booru,
     private val replyCallback: (Int) -> Unit,
     private val quoteCallback: (Int, String) -> Unit,
@@ -132,14 +132,15 @@ class CommentAdapter(
                 }
             }
             if (data.booruType == BOORU_TYPE_MOE) {
-                glide.load(String.format(itemView.resources.getString(R.string.account_user_avatars),
-                    booru.scheme, booru.host, data.creatorId))
-                    .placeholder(ContextCompat.getDrawable(itemView.context, R.drawable.avatar_account))
-                    .into(avatar)
+                avatar.load(String.format(itemView.resources.getString(R.string.account_user_avatars), booru.scheme, booru.host, data.creatorId)) {
+                    placeholder(ContextCompat.getDrawable(itemView.context, R.drawable.avatar_account))
+                    error(ContextCompat.getDrawable(itemView.context, R.drawable.avatar_account))
+                }
             } else if (data.booruType == BOORU_TYPE_SANKAKU) {
-                glide.load(data.creatorAvatar)
-                    .placeholder(ContextCompat.getDrawable(itemView.context, R.drawable.avatar_account))
-                    .into(avatar)
+                avatar.load(data.creatorAvatar) {
+                    placeholder(ContextCompat.getDrawable(itemView.context, R.drawable.avatar_account))
+                    error(ContextCompat.getDrawable(itemView.context, R.drawable.avatar_account))
+                }
             }
         }
     }

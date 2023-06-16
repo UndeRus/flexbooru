@@ -22,24 +22,29 @@ import android.os.Build
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
-import com.bumptech.glide.Glide
+import coil.ImageLoader
+import coil.ImageLoaderFactory
+import coil.disk.DiskCache
+import coil.dispose
+import coil.load
 import com.google.android.material.color.DynamicColors
 import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader
 import com.mikepenz.materialdrawer.util.DrawerImageLoader
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
-import onlymash.flexbooru.BuildConfig
+import okhttp3.OkHttpClient
 import onlymash.flexbooru.R
 import onlymash.flexbooru.app.Settings.nightMode
-import onlymash.flexbooru.glide.GlideApp
+import onlymash.flexbooru.okhttp.AndroidCookieJar
+import onlymash.flexbooru.okhttp.CloudflareInterceptor
+import onlymash.flexbooru.okhttp.ProgressInterceptor
+import onlymash.flexbooru.okhttp.RequestHeaderInterceptor
 import org.kodein.di.DI
 import org.kodein.di.DIAware
 
-class App : Application(), DIAware {
+class App : Application(), DIAware, ImageLoaderFactory {
 
     companion object {
         lateinit var app: App
+        private const val CACHE_MAX_PERCENT = 0.2
     }
 
     override val di by DI.lazy {
@@ -48,14 +53,13 @@ class App : Application(), DIAware {
 
     private val drawerImageLoader = object : AbstractDrawerImageLoader() {
         override fun set(imageView: ImageView, uri: Uri, placeholder: Drawable, tag: String?) {
-            GlideApp.with(imageView.context)
-                .load(uri)
-                .centerCrop()
-                .placeholder(ContextCompat.getDrawable(imageView.context, R.drawable.avatar_account))
-                .into(imageView)
+            imageView.scaleType = ImageView.ScaleType.CENTER_CROP
+            imageView.load(uri) {
+                placeholder(ContextCompat.getDrawable(imageView.context, R.drawable.avatar_account))
+            }
         }
         override fun cancel(imageView: ImageView) {
-            Glide.with(imageView.context).clear(imageView)
+            imageView.dispose()
         }
     }
 
@@ -71,5 +75,29 @@ class App : Application(), DIAware {
         }
         AppCompatDelegate.setDefaultNightMode(nightMode)
         DrawerImageLoader.init(drawerImageLoader)
+    }
+
+    override fun newImageLoader(): ImageLoader {
+        val builder = OkHttpClient.Builder()
+            .cookieJar(AndroidCookieJar)
+            .addNetworkInterceptor(RequestHeaderInterceptor())
+            .addInterceptor(ProgressInterceptor())
+        if (Settings.isBypassWAF) {
+            builder.addInterceptor(CloudflareInterceptor(this))
+        }
+        if (Settings.isDohEnable) {
+            builder.dns(Settings.doh)
+        }
+        return ImageLoader.Builder(this)
+            .diskCache {
+                DiskCache.Builder()
+                    .directory(cacheDir.resolve("image_cache"))
+                    .maxSizePercent(CACHE_MAX_PERCENT)
+                    .build()
+            }
+            .allowHardware(false)
+            .okHttpClient(builder.build())
+            .crossfade(true)
+            .build()
     }
 }

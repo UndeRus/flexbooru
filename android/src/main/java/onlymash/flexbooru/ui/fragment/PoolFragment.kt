@@ -40,7 +40,6 @@ import onlymash.flexbooru.data.model.common.Booru
 import onlymash.flexbooru.data.repository.pool.PoolRepositoryImpl
 import onlymash.flexbooru.extension.asMergedLoadStates
 import onlymash.flexbooru.extension.launchUrl
-import onlymash.flexbooru.glide.GlideApp
 import onlymash.flexbooru.ui.activity.AccountConfigActivity
 import onlymash.flexbooru.ui.adapter.PoolAdapter
 import onlymash.flexbooru.ui.adapter.StateAdapter
@@ -70,12 +69,11 @@ class PoolFragment : SearchBarFragment() {
 
     override fun onSearchBarViewCreated(view: View, savedInstanceState: Bundle?) {
         setSearchBarTitle(getString(R.string.title_pools))
-        poolAdapter = PoolAdapter(GlideApp.with(this),
-            downloadPoolCallback = { poolId ->
+        poolAdapter = PoolAdapter { poolId ->
                 action?.booru?.let {
                     handlePoolDownload(poolId, it)
                 }
-        })
+        }
         mainList.apply {
             layoutManager = LinearLayoutManager(this@PoolFragment.requireContext(), RecyclerView.VERTICAL, false)
             adapter = poolAdapter.withLoadStateFooter(StateAdapter(poolAdapter))

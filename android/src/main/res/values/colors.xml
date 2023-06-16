@@ -32,7 +32,6 @@
     <color name="colorOnSurface">@color/color_light_on_surface</color>
     <color name="scrimBackground">@color/color_light_scrim</color>
 
-    <color name="colorIconTint">@color/grey_600</color>
     <color name="colorIconTintToolbar">@color/black</color>
     <color name="colorFastScrollBar">@color/grey_300</color>
     <color name="colorDividerItem">@color/grey_300</color>
@@ -53,7 +52,6 @@
     <color name="system_bar_black">@color/black</color>
     <color name="system_bar_light_scrim">#ccffffff</color>
     <color name="system_bar_dark_scrim">#55000000</color>
-    <color name="background_tint_account_action">@color/colorPrimary</color>
 
     <color name="background_card_light">@color/white</color>
     <color name="background_card_dark">@color/grey_900</color>

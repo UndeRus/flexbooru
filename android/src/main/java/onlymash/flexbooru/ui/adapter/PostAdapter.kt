@@ -15,6 +15,7 @@
 
 package onlymash.flexbooru.ui.adapter
 
+import android.annotation.SuppressLint
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -33,7 +34,7 @@ import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
+import coil.load
 import onlymash.flexbooru.R
 import onlymash.flexbooru.app.Settings.gridMode
 import onlymash.flexbooru.app.Settings.gridRatio
@@ -44,14 +45,13 @@ import onlymash.flexbooru.data.model.common.Post
 import onlymash.flexbooru.databinding.ItemPostBinding
 import onlymash.flexbooru.databinding.ItemPostRoundedBinding
 import onlymash.flexbooru.extension.isStillImage
-import onlymash.flexbooru.glide.GlideRequests
 import onlymash.flexbooru.ui.viewbinding.viewBinding
 
 private const val MAX_ASPECT_RATIO = 21.0 / 9.0
 private const val MIN_ASPECT_RATIO = 9.0 / 21.0
 
+@SuppressLint("NotifyDataSetChanged")
 class PostAdapter(
-    private val glide: GlideRequests,
     private val clickItemCallback: (View, Int, String) -> Unit,
     private val longClickItemCallback: (Post) -> Unit
 ) : PagingDataAdapter<Post, PostAdapter.PostViewHolder>(POST_COMPARATOR) {
@@ -59,11 +59,9 @@ class PostAdapter(
     companion object {
         val POST_COMPARATOR = object : DiffUtil.ItemCallback<Post>() {
             override fun areContentsTheSame(oldItem: Post, newItem: Post): Boolean =
-                oldItem.id == newItem.id && oldItem.preview == newItem.preview
+                oldItem.id == newItem.id
             override fun areItemsTheSame(oldItem: Post, newItem: Post): Boolean =
-                oldItem.booruUid == newItem.booruUid &&
-                        oldItem.query == newItem.query &&
-                        oldItem.id == newItem.id
+                oldItem.booruUid == newItem.booruUid && oldItem.query == newItem.query && oldItem.id == newItem.id
         }
     }
 
@@ -191,10 +189,9 @@ class PostAdapter(
                 post.sample
             else
                 post.preview
-            glide.load(url)
-                .placeholder(placeholderDrawable)
-                .transition(withCrossFade())
-                .into(preview)
+            preview.load(url) {
+                placeholder(placeholderDrawable)
+            }
         }
     }
 }

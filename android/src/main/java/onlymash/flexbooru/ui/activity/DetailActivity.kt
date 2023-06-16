@@ -41,6 +41,9 @@ import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
 import androidx.viewpager2.widget.ViewPager2
+import coil.executeBlocking
+import coil.imageLoader
+import coil.request.ImageRequest
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
@@ -75,7 +78,6 @@ import onlymash.flexbooru.data.repository.favorite.VoteRepositoryImpl
 import onlymash.flexbooru.databinding.ActivityDetailBinding
 import onlymash.flexbooru.exoplayer.PlayerHolder
 import onlymash.flexbooru.extension.NetResult
-import onlymash.flexbooru.extension.copyTo
 import onlymash.flexbooru.extension.fileName
 import onlymash.flexbooru.extension.getMimeType
 import onlymash.flexbooru.extension.getSaveUri
@@ -86,7 +88,6 @@ import onlymash.flexbooru.extension.isVideo
 import onlymash.flexbooru.extension.launchUrl
 import onlymash.flexbooru.extension.safeCloseQuietly
 import onlymash.flexbooru.extension.showSystemBars
-import onlymash.flexbooru.glide.GlideApp
 import onlymash.flexbooru.ui.adapter.DetailAdapter
 import onlymash.flexbooru.ui.base.PathActivity
 import onlymash.flexbooru.ui.fragment.InfoDialog
@@ -282,9 +283,7 @@ class DetailActivity : PathActivity(),
         if (detailViewModel.currentPosition < 0) {
             detailViewModel.currentPosition = intent?.getIntExtra(POST_POSITION, -1) ?: -1
         }
-        val glide = GlideApp.with(this)
         detailAdapter = DetailAdapter(
-            glide = glide,
             dismissListener = this,
             ioExecutor = Dispatchers.IO.asExecutor(),
             clickCallback = { setupBarVisable() },
@@ -567,11 +566,13 @@ class DetailActivity : PathActivity(),
     private suspend fun loadFile(url: String): File? =
         withContext(Dispatchers.IO) {
             try {
-                GlideApp.with(this@DetailActivity)
-                    .downloadOnly()
-                    .load(url)
-                    .submit()
-                    .get()
+                val request = ImageRequest.Builder(this@DetailActivity)
+                    .data(url)
+                    .memoryCacheKey(url)
+                    .diskCacheKey(url)
+                    .build()
+                imageLoader.executeBlocking(request)
+                imageLoader.diskCache?.get(url)?.data?.toFile()
             } catch (_: Exception) {
                 null
             }
@@ -584,7 +585,7 @@ class DetailActivity : PathActivity(),
             try {
                 inputStream = FileInputStream(file)
                 outputSteam = contentResolver.openOutputStream(desUri)
-                inputStream.copyTo(outputSteam)
+                outputSteam?.let { inputStream.copyTo(it) }
                 true
             } catch (_: IOException) {
                 false

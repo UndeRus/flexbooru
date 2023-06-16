@@ -18,11 +18,13 @@ package onlymash.flexbooru.ui.adapter
 import android.content.Intent
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isVisible
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import onlymash.flexbooru.R
 import onlymash.flexbooru.app.Values.BOORU_TYPE_MOE
 import onlymash.flexbooru.app.Values.BOORU_TYPE_SANKAKU
@@ -30,7 +32,6 @@ import onlymash.flexbooru.data.model.common.Pool
 import onlymash.flexbooru.databinding.ItemPoolBinding
 import onlymash.flexbooru.extension.formatDate
 import onlymash.flexbooru.extension.toggleArrow
-import onlymash.flexbooru.glide.GlideRequests
 import onlymash.flexbooru.ui.activity.AccountActivity
 import onlymash.flexbooru.ui.activity.SearchActivity
 import onlymash.flexbooru.ui.viewbinding.viewBinding
@@ -38,7 +39,6 @@ import onlymash.flexbooru.util.ViewAnimation
 import onlymash.flexbooru.widget.LinkTransformationMethod
 
 class PoolAdapter(
-    private val glide: GlideRequests,
     private val downloadPoolCallback: (Int) -> Unit
 ) : PagingDataAdapter<Pool, PoolAdapter.PoolViewHolder>(POOL_COMPARATOR) {
 
@@ -122,14 +122,16 @@ class PoolAdapter(
             poolDate.text = itemView.context.formatDate(pool.time)
             when (pool.booruType) {
                 BOORU_TYPE_MOE -> {
-                    glide.load(String.format(context.getString(R.string.account_user_avatars), pool.scheme, pool.host, pool.creatorId))
-                        .placeholder(ResourcesCompat.getDrawable(context.resources, R.drawable.avatar_account, context.theme))
-                        .into(userAvatar)
+                    userAvatar.load(String.format(context.getString(R.string.account_user_avatars), pool.scheme, pool.host, pool.creatorId)) {
+                        placeholder(ResourcesCompat.getDrawable(context.resources, R.drawable.avatar_account, context.theme))
+                        error(ContextCompat.getDrawable(itemView.context, R.drawable.avatar_account))
+                    }
                 }
                 BOORU_TYPE_SANKAKU -> {
-                    glide.load(pool.creatorAvatar)
-                        .placeholder(ResourcesCompat.getDrawable(context.resources, R.drawable.avatar_account, context.theme))
-                        .into(userAvatar)
+                    userAvatar.load(pool.creatorAvatar) {
+                        placeholder(ResourcesCompat.getDrawable(context.resources, R.drawable.avatar_account, context.theme))
+                        error(ContextCompat.getDrawable(itemView.context, R.drawable.avatar_account))
+                    }
                 }
             }
         }
