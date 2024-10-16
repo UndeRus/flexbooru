@@ -35,7 +35,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import onlymash.flexbooru.R
@@ -46,22 +45,22 @@ import onlymash.flexbooru.data.model.common.Booru
 import onlymash.flexbooru.databinding.ActivityBooruBinding
 import onlymash.flexbooru.extension.safeCloseQuietly
 import onlymash.flexbooru.ui.adapter.BooruAdapter
-import onlymash.flexbooru.ui.base.KodeinActivity
-import onlymash.flexbooru.ui.fragment.QRCodeDialog
-import onlymash.flexbooru.ui.helper.CreateFileLifecycleObserver
+import onlymash.flexbooru.ui.base.BaseActivity
 import onlymash.flexbooru.ui.helper.ItemTouchCallback
 import onlymash.flexbooru.ui.helper.ItemTouchHelperCallback
-import onlymash.flexbooru.ui.helper.OpenFileLifecycleObserver
-import onlymash.flexbooru.ui.viewbinding.viewBinding
 import onlymash.flexbooru.ui.viewmodel.BooruViewModel
 import onlymash.flexbooru.ui.viewmodel.getBooruViewModel
-import org.kodein.di.instance
+import onlymash.flexbooru.ui.fragment.QRCodeDialog
+import onlymash.flexbooru.ui.helper.CreateFileLifecycleObserver
+import onlymash.flexbooru.ui.helper.OpenFileLifecycleObserver
+import onlymash.flexbooru.ui.viewbinding.viewBinding
+import org.koin.android.ext.android.inject
 import java.io.IOException
 import java.io.InputStream
 
-class BooruActivity : KodeinActivity() {
+class BooruActivity : BaseActivity() {
 
-    private val booruDao by instance<BooruDao>()
+    private val booruDao by inject<BooruDao>()
 
     private val binding by viewBinding(ActivityBooruBinding::inflate)
     private val list get() = binding.list
@@ -240,18 +239,20 @@ class BooruActivity : KodeinActivity() {
         }
     }
 
+    private val json get() = Json {
+        ignoreUnknownKeys = true
+        prettyPrint = true
+    }
+
     private fun saveFile(uri: Uri) {
         GlobalScope.launch(Dispatchers.Main) {
             val success = withContext(Dispatchers.IO) {
                 val boorus = booruAdapter.getBoorus()
-                if (boorus.isNullOrEmpty()) return@withContext false
+                if (boorus.isEmpty()) return@withContext false
                 val outputStream = contentResolver.openOutputStream(uri) ?: return@withContext false
                 var inputStream: InputStream? = null
                 try {
-                    inputStream = Json {
-                        ignoreUnknownKeys = true
-                        prettyPrint = true
-                    }.encodeToString(boorus).byteInputStream()
+                    inputStream = json.encodeToString(boorus).byteInputStream()
                     inputStream.copyTo(outputStream)
                 } catch (_:IOException) {
                     return@withContext false
@@ -274,9 +275,7 @@ class BooruActivity : KodeinActivity() {
         var boorus: List<Booru>? = null
         try {
             val jsonString = inputStream.readBytes().toString(Charsets.UTF_8)
-            boorus = Json {
-                ignoreUnknownKeys = true
-            }.decodeFromString(jsonString)
+            boorus = json.decodeFromString(jsonString)
         } catch (_: Exception) {
 
         } finally {

@@ -15,6 +15,7 @@
 
 package onlymash.flexbooru.ui.fragment
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.SharedElementCallback
 import android.content.*
@@ -84,7 +85,9 @@ import onlymash.flexbooru.data.repository.favorite.VoteRepositoryImpl
 import onlymash.flexbooru.data.repository.post.PostRepositoryImpl
 import onlymash.flexbooru.data.repository.tagfilter.TagFilterRepositoryImpl
 import onlymash.flexbooru.extension.asMergedLoadStates
+import onlymash.flexbooru.extension.downloadByAdm
 import onlymash.flexbooru.extension.getScreenWidthPixels
+import onlymash.flexbooru.extension.isVideo
 import onlymash.flexbooru.extension.rotate
 import onlymash.flexbooru.ui.activity.DetailActivity
 import onlymash.flexbooru.ui.activity.SauceNaoActivity
@@ -101,7 +104,7 @@ import onlymash.flexbooru.ui.viewmodel.getTagFilterViewModel
 import onlymash.flexbooru.util.ViewTransition
 import onlymash.flexbooru.widget.searchbar.SearchBar
 import onlymash.flexbooru.worker.DownloadWorker
-import org.kodein.di.instance
+import org.koin.android.ext.android.inject
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -117,7 +120,7 @@ private const val ROTATION_DEGREE = 135f
 
 class PostFragment : SearchBarFragment() {
 
-    private val db by instance<MyDatabase>()
+    private val db by inject<MyDatabase>()
 
     private val voteRepository by lazy { VoteRepositoryImpl(booruApis, db.postDao()) }
 
@@ -390,7 +393,11 @@ class PostFragment : SearchBarFragment() {
                 when (which) {
                     0 -> {
                         action?.apply {
-                            DownloadWorker.downloadPost(post, booru.host, activity)
+                            if (post.origin.isVideo()) {
+                                context?.downloadByAdm(post.origin)
+                            } else {
+                                DownloadWorker.downloadPost(post, booru.host, activity)
+                            }
                         }
                     }
                     1 -> {
@@ -636,13 +643,21 @@ class PostFragment : SearchBarFragment() {
         }
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun onStart() {
         super.onStart()
         setActivityExitSharedElementCallback(sharedElementCallback)
-        context?.registerReceiver(
-            broadcastReceiver,
-            IntentFilter(DetailActivity.ACTION_DETAIL_POST_POSITION)
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context?.registerReceiver(
+                broadcastReceiver,
+                IntentFilter(DetailActivity.ACTION_DETAIL_POST_POSITION), Context.RECEIVER_NOT_EXPORTED
+            )
+        } else {
+            context?.registerReceiver(
+                broadcastReceiver,
+                IntentFilter(DetailActivity.ACTION_DETAIL_POST_POSITION)
+            )
+        }
     }
 
     override fun onStop() {

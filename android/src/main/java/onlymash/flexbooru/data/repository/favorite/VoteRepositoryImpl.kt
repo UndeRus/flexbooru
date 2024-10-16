@@ -28,6 +28,7 @@ import onlymash.flexbooru.data.action.ActionVote
 import onlymash.flexbooru.data.api.BooruApis
 import onlymash.flexbooru.data.database.dao.PostDao
 import onlymash.flexbooru.extension.NetResult
+import onlymash.flexbooru.okhttp.AndroidCookieJar
 import retrofit2.HttpException
 
 class VoteRepositoryImpl(
@@ -50,7 +51,7 @@ class VoteRepositoryImpl(
             BOORU_TYPE_DAN -> removeDanFav(action)
             BOORU_TYPE_DAN1 -> removeDan1Fav(action)
             BOORU_TYPE_MOE -> voteMoePost(action, 0)
-            in arrayOf(BOORU_TYPE_GEL, BOORU_TYPE_GEL_LEGACY)-> removeGelFav()
+            in arrayOf(BOORU_TYPE_GEL, BOORU_TYPE_GEL_LEGACY)-> removeGelFav(action)
             else -> removeSankakuFav(action)
         }
     }
@@ -58,12 +59,50 @@ class VoteRepositoryImpl(
     private suspend fun addGelFav(action: ActionVote): NetResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                val response = booruApis.gelApi.favPost(
-                    cookie = action.booru.user?.gelCookie,
-                    httpUrl = action.getGelAddFavUrl()
+                AndroidCookieJar.set(
+                    action.getGelRemoveFavUrl().toString(), // NOTICE: Here is GelRemoveFavUrl, GelAddFavUrl is in subdir
+                    arrayListOf("user_id=${action.booru.user!!.id}", "pass_hash=${action.booru.user!!.token}")
                 )
+                val response = booruApis.gelApi.favPost(action.getGelAddFavUrl())
+
                 if (response.isSuccessful) {
-                    postDao.updateFav(booruUid = action.booru.uid, postId = action.postId, isFavored = true)
+                    val content = response.body()!!.string()
+                    when (content) {
+                        // Success (3) or already in favorites (1)
+                        "3", "1" -> {
+                            postDao.updateFav(booruUid = action.booru.uid, postId = action.postId, isFavored = true)
+                            NetResult.Success(true)
+                        }
+
+                        // Failed
+                        "2" -> {
+                            NetResult.Error("Add to favorites failed")
+                        }
+
+                        else -> {
+                            NetResult.Error("Unknown result")
+                        }
+                    }
+                } else {
+                    NetResult.Error("code: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                NetResult.Error(e.message.toString())
+            }
+        }
+    }
+
+    private suspend fun removeGelFav(action: ActionVote): NetResult<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                AndroidCookieJar.set(
+                    action.getGelRemoveFavUrl().toString(),
+                    arrayListOf("user_id=${action.booru.user!!.id}", "pass_hash=${action.booru.user!!.token}")
+                )
+                val response = booruApis.gelApi.favPost(action.getGelRemoveFavUrl())
+
+                if (response.isSuccessful) {
+                    postDao.updateFav(booruUid = action.booru.uid, postId = action.postId, isFavored = false)
                     NetResult.Success(true)
                 } else {
                     NetResult.Error("code: ${response.code()}")
@@ -74,13 +113,15 @@ class VoteRepositoryImpl(
         }
     }
 
-    private fun removeGelFav(): NetResult<Boolean> {
-        return NetResult.Error("Not supported")
-    }
-
     private suspend fun voteMoePost(action: ActionVote, score: Int): NetResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
+                if (action.booru.host == "lolibooru.moe") {
+                    AndroidCookieJar.set(
+                        action.getMoeVoteUrl(),
+                        arrayListOf("login=${action.booru.user!!.name}", "pass_hash=${action.booru.user!!.token}")
+                    )
+                }
                 val response = booruApis.moeApi.votePost(
                     url = action.getMoeVoteUrl(),
                     id = action.postId,

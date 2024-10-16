@@ -43,7 +43,7 @@ import onlymash.flexbooru.data.repository.user.UserRepositoryImpl
 import onlymash.flexbooru.databinding.ActivityAccountBinding
 import onlymash.flexbooru.ui.base.PathActivity
 import onlymash.flexbooru.ui.viewbinding.viewBinding
-import org.kodein.di.instance
+import org.koin.android.ext.android.inject
 
 class AccountActivity : PathActivity() {
 
@@ -53,7 +53,7 @@ class AccountActivity : PathActivity() {
         const val USER_AVATAR_KEY = "user_avatar"
     }
 
-    private val booruApis by instance<BooruApis>()
+    private val booruApis by inject<BooruApis>()
 
     private val binding by viewBinding(ActivityAccountBinding::inflate)
 
@@ -199,7 +199,7 @@ class AccountActivity : PathActivity() {
             }
         }
         binding.favActionButton.setOnClickListener {
-            if (booru.type == BOORU_TYPE_GEL || booru.type == BOORU_TYPE_GEL_LEGACY) {
+            if (booru.type == BOORU_TYPE_GEL_LEGACY) {
                 val url = "${booru.scheme}://${booru.host}/index.php?page=favorites&s=view&id=${user.id}"
                 launchUrl(url)
             } else {
@@ -208,6 +208,7 @@ class AccountActivity : PathActivity() {
                     BOORU_TYPE_DAN1,
                     BOORU_TYPE_SANKAKU -> String.format("fav:%s", user.name)
                     BOORU_TYPE_MOE -> String.format("vote:3:%s order:vote", user.name)
+                    BOORU_TYPE_GEL -> "fav:${user.id}"
                     else -> null
                 }
                 searchPost(query)

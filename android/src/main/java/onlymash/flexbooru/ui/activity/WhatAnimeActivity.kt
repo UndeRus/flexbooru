@@ -29,6 +29,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.ui.PlayerView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.decode.GifDecoder
@@ -36,19 +37,17 @@ import coil.decode.ImageDecoderDecoder
 import coil.imageLoader
 import coil.load
 import coil.request.ImageRequest
-import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import onlymash.flexbooru.R
-import onlymash.flexbooru.common.di.diCommon
 import onlymash.flexbooru.common.tracemoe.api.TraceMoeApi
 import onlymash.flexbooru.common.tracemoe.model.Result
 import onlymash.flexbooru.databinding.ActivityWhatAnimeBinding
 import onlymash.flexbooru.databinding.FragmentAnimePlayerBinding
 import onlymash.flexbooru.databinding.ItemWhatAnimeBinding
-import onlymash.flexbooru.exoplayer.PlayerHolder
+import onlymash.flexbooru.player.PlayerHolder
 import onlymash.flexbooru.extension.copyText
 import onlymash.flexbooru.extension.fileExt
 import onlymash.flexbooru.extension.toVisibility
@@ -58,7 +57,7 @@ import onlymash.flexbooru.ui.helper.OpenFileLifecycleObserver
 import onlymash.flexbooru.ui.viewbinding.viewBinding
 import onlymash.flexbooru.ui.viewmodel.TraceMoeViewModel
 import onlymash.flexbooru.ui.viewmodel.getTraceMoeViewModel
-import org.kodein.di.instance
+import org.koin.android.ext.android.inject
 import java.io.ByteArrayOutputStream
 
 private const val PREVIEW_VIDEO_URL_KEY = "preview_video_url"
@@ -72,7 +71,7 @@ class WhatAnimeActivity : BaseActivity() {
     private lateinit var traceMoeViewModel: TraceMoeViewModel
     private lateinit var openFileObserver: OpenFileLifecycleObserver
 
-    private val api by diCommon.instance<TraceMoeApi>("TraceMoeApi")
+    private val api by inject<TraceMoeApi>()
 
     private val binding by viewBinding(ActivityWhatAnimeBinding::inflate)
     private val progressBar get() = binding.common.progress.progressBar
@@ -261,7 +260,7 @@ class WhatAnimeActivity : BaseActivity() {
 
     class AnimePlayerDialog : BaseBottomSheetDialog() {
 
-        private var playerView: StyledPlayerView? = null
+        private var playerView: PlayerView? = null
         private lateinit var behavior: BottomSheetBehavior<View>
         private lateinit var binding: FragmentAnimePlayerBinding
 

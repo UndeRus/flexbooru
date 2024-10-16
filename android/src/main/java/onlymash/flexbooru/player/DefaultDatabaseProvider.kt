@@ -13,14 +13,16 @@
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package onlymash.flexbooru.exoplayer
+package onlymash.flexbooru.player
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import com.google.android.exoplayer2.database.DatabaseProvider
+import androidx.media3.database.DatabaseProvider
 import onlymash.flexbooru.app.App
 
+@SuppressLint("UnsafeOptInUsageError")
 class DefaultDatabaseProvider(context: Context) : SQLiteOpenHelper(context, "ExoPlayer", null, 1), DatabaseProvider {
 
     companion object {
@@ -39,18 +41,5 @@ class DefaultDatabaseProvider(context: Context) : SQLiteOpenHelper(context, "Exo
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
 
-    }
-
-    @Synchronized
-    override fun close() {
-        super.close()
-    }
-
-    override fun getReadableDatabase(): SQLiteDatabase {
-        return super.getReadableDatabase()
-    }
-
-    override fun getWritableDatabase(): SQLiteDatabase {
-        return super.getWritableDatabase()
     }
 }

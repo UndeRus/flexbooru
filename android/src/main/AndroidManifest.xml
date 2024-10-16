@@ -22,12 +22,13 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="com.android.vending.BILLING"/>
-    <uses-permission-sdk-23 android:name="android.permission.CAMERA"/>
-    <uses-feature
-        android:name="android.hardware.camera"
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.touchscreen"
         android:required="false"/>
-    <uses-feature
-        android:name="android.hardware.touchscreen"
+    <uses-feature android:name="android.hardware.camera"
         android:required="false"/>
 
     <application
@@ -150,7 +151,13 @@
                 android:resource="@xml/file_provider_paths"/>
         </provider>
 
-        <receiver android:name=".receiver.DownloadNotificationClickReceiver"/>
+        <receiver android:name=".receiver.DownloadNotificationClickReceiver"
+            android:exported="false"/>
+
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="specialUse"
+            tools:node="merge"/>
 
         <meta-data
             android:name="com.google.android.backup.api_key"
@@ -163,6 +170,11 @@
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false"/>
+
+        <property
+            android:name="android.adservices.AD_SERVICES_CONFIG"
+            android:resource="@xml/gma_ad_services_config"
+            tools:replace="android:resource" />
     </application>
 
 </manifest>

@@ -13,12 +13,13 @@
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package onlymash.flexbooru.ui.base
+package onlymash.flexbooru.player
 
-import androidx.viewbinding.ViewBinding
-import org.kodein.di.DIAware
-import org.kodein.di.android.x.closestDI
+import android.net.Uri
 
-abstract class KodeinFragment<T: ViewBinding> : BindingFragment<T>(), DIAware {
-    final override val di by closestDI()
-}
+data class PlayerState(
+    var window: Int = 0,
+    var position: Long = 0,
+    var whenReady: Boolean = true,
+    var uri: Uri
+)

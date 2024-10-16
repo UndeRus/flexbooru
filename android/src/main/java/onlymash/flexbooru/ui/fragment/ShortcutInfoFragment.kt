@@ -16,9 +16,7 @@
 package onlymash.flexbooru.ui.fragment
 
 import android.annotation.SuppressLint
-import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.text.format.Formatter
 import android.view.LayoutInflater
@@ -33,7 +31,9 @@ import onlymash.flexbooru.data.model.common.Booru
 import onlymash.flexbooru.data.model.common.Post
 import onlymash.flexbooru.databinding.FragmentShortcutInfoBinding
 import onlymash.flexbooru.extension.copyText
+import onlymash.flexbooru.extension.downloadByAdm
 import onlymash.flexbooru.extension.formatDate
+import onlymash.flexbooru.extension.isVideo
 import onlymash.flexbooru.extension.launchUrl
 import onlymash.flexbooru.ui.activity.AccountActivity
 import onlymash.flexbooru.ui.base.PathActivity
@@ -41,11 +41,6 @@ import onlymash.flexbooru.ui.base.ShortcutFragment
 import onlymash.flexbooru.widget.LinkTransformationMethod
 import onlymash.flexbooru.worker.DownloadWorker
 
-enum class UrlType {
-    SAMPLE,
-    MEDIUM,
-    ORIGIN,
-}
 
 class ShortcutInfoFragment : ShortcutFragment<FragmentShortcutInfoBinding>() {
 
@@ -61,6 +56,12 @@ class ShortcutInfoFragment : ShortcutFragment<FragmentShortcutInfoBinding>() {
     
     private lateinit var booru: Booru
     private var post: Post? = null
+
+    enum class UrlType {
+        SAMPLE,
+        MEDIUM,
+        ORIGIN,
+    }
 
     override fun onCreateBinding(
         inflater: LayoutInflater,
@@ -143,7 +144,7 @@ class ShortcutInfoFragment : ShortcutFragment<FragmentShortcutInfoBinding>() {
         binding.createdDate.text = binding.root.context.formatDate(post.time)
     }
 
-    val sRatingNameRes: Int get() = if (booru.type == Values.BOORU_TYPE_DAN) R.string.browse_info_rating_sensitive else R.string.browse_info_rating_safe
+    private val sRatingNameRes: Int get() = if (booru.type == Values.BOORU_TYPE_DAN) R.string.browse_info_rating_sensitive else R.string.browse_info_rating_safe
 
     private fun getSize(width: Int, height: Int, size: Int): String {
         return "$width x $height ${Formatter.formatFileSize(context, size.toLong())}"
@@ -177,25 +178,22 @@ class ShortcutInfoFragment : ShortcutFragment<FragmentShortcutInfoBinding>() {
         val post = post ?: return
         val activity = activity as? PathActivity ?: return
         val url = getUrl(post, type)
-        DownloadWorker.download(
-            url = url,
-            postId = post.id,
-            host = booru.host,
-            activity = activity
-        )
+        if (url.isVideo()) {
+            context?.downloadByAdm(url)
+        } else {
+            DownloadWorker.download(
+                url = url,
+                postId = post.id,
+                host = booru.host,
+                activity = activity
+            )
+        }
     }
 
     private fun openUrl(type: UrlType) {
         val post = post ?: return
         val url = getUrl(post, type)
-        val intent = Intent().apply {
-            action = Intent.ACTION_VIEW
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            data = Uri.parse(url)
-        }
-        try {
-            startActivity(intent)
-        } catch (_: ActivityNotFoundException) {}
+        context?.downloadByAdm(url)
     }
 
     private fun getUrl(post: Post, type: UrlType): String {

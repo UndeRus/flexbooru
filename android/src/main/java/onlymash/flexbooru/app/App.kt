@@ -31,24 +31,22 @@ import com.google.android.material.color.DynamicColors
 import com.mikepenz.materialdrawer.util.AbstractDrawerImageLoader
 import com.mikepenz.materialdrawer.util.DrawerImageLoader
 import okhttp3.OkHttpClient
+import onlymash.flexbooru.BuildConfig
 import onlymash.flexbooru.R
 import onlymash.flexbooru.app.Settings.nightMode
+import onlymash.flexbooru.common.di.commonModules
 import onlymash.flexbooru.okhttp.AndroidCookieJar
 import onlymash.flexbooru.okhttp.CloudflareInterceptor
 import onlymash.flexbooru.okhttp.ProgressInterceptor
 import onlymash.flexbooru.okhttp.RequestHeaderInterceptor
-import org.kodein.di.DI
-import org.kodein.di.DIAware
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.GlobalContext.startKoin
 
-class App : Application(), DIAware, ImageLoaderFactory {
+class App : Application(), ImageLoaderFactory {
 
     companion object {
         lateinit var app: App
-        private const val CACHE_MAX_PERCENT = 0.2
-    }
-
-    override val di by DI.lazy {
-        import(appModule(this@App))
+        private const val CACHE_MAX_PERCENT = 1.0
     }
 
     private val drawerImageLoader = object : AbstractDrawerImageLoader() {
@@ -66,6 +64,10 @@ class App : Application(), DIAware, ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
         app = this
+        startKoin {
+            androidContext(app)
+            modules(appModules + commonModules)
+        }
         initial()
     }
 
@@ -75,6 +77,9 @@ class App : Application(), DIAware, ImageLoaderFactory {
         }
         AppCompatDelegate.setDefaultNightMode(nightMode)
         DrawerImageLoader.init(drawerImageLoader)
+        if (BuildConfig.DEBUG) {
+            return
+        }
     }
 
     override fun newImageLoader(): ImageLoader {
@@ -88,16 +93,16 @@ class App : Application(), DIAware, ImageLoaderFactory {
         if (Settings.isDohEnable) {
             builder.dns(Settings.doh)
         }
+        val diskCache = DiskCache.Builder()
+            .directory(cacheDir.resolve("image_cache"))
+            .maxSizePercent(CACHE_MAX_PERCENT)
+            .build()
         return ImageLoader.Builder(this)
-            .diskCache {
-                DiskCache.Builder()
-                    .directory(cacheDir.resolve("image_cache"))
-                    .maxSizePercent(CACHE_MAX_PERCENT)
-                    .build()
-            }
+            .diskCache(diskCache)
             .allowHardware(false)
             .okHttpClient(builder.build())
             .crossfade(true)
+            .error(R.drawable.ic_placeholder_error)
             .build()
     }
 }
